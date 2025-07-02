@@ -13,13 +13,12 @@ interface UsersListProps {
 
 export const UsersList: React.FC<UsersListProps> = ({ currentUserId }) => {
   // Use reactive data from Meteor
-  const { users, isReady } = useTracker(() => {
-    const handle = Meteor.subscribe('allUsers');
-    return {
-      users: Meteor.users.find({ _id: { $ne: currentUserId } }).fetch(),
-      isReady: handle.ready()
-    };
-  }, [currentUserId]);
+  const handle = useTracker(() => Meteor.subscribe('allUsers'), [currentUserId]);
+  const users = useTracker(() =>
+    Meteor.users.find({ _id: { $ne: currentUserId } }).fetch(),
+    [currentUserId]
+  );
+  const isReady = handle.ready();
 
   const formatLastSeen = (lastSeen: Date) => {
     const now = new Date();
