@@ -3,11 +3,6 @@
   "private": true,
   "scripts": {
     "start": "meteor run",
-    "dev": "meteor run --settings settings.json",
-    "dev-env": "node -r dotenv/config ./node_modules/.bin/meteor run --settings settings.json",
-    "build": "meteor build ../build --settings settings.json",
-    "build-env": "node -r dotenv/config ./node_modules/.bin/meteor build ../build --settings settings.json",
-
     "test": "meteor test --once --driver-package meteortesting:mocha",
     "test-app": "TEST_WATCH=1 meteor test --full-app --driver-package meteortesting:mocha",
     "visualize": "meteor --production --extra-packages bundle-visualizer"
