@@ -12,7 +12,7 @@
     "galaxy.meteor.com": {
       "env": {
         "MONGO_URL": "mongodb+srv://shad:admin123@cluster0.numgyjb.mongodb.net/meteor-pwa?retryWrites=true&w=majority",
-        "ROOT_URL": "https://meteor-pwa.meteorapp.com"
+        "ROOT_URL": "https://pwameteor.meteorapp.com"
       }
     },
     "public": {
