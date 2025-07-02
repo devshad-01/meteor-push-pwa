@@ -1,13 +1,3 @@
-// {
-//   "public": {
-//     "vapidPublicKey": "BHLrfMTYHnuj2GXwZLYS5bchaMlLRbNAcrhQzlTHLRymTTJtaEtQim6ZTuSTmSUfhIEWWYimjtSX3em7RBoQRD0"
-//   },
-//   "vapid": {
-//     "email": "mailto:your-email@example.com",
-//     "publicKey": "BHLrfMTYHnuj2GXwZLYS5bchaMlLRbNAcrhQzlTHLRymTTJtaEtQim6ZTuSTmSUfhIEWWYimjtSX3em7RBoQRD0",
-//     "privateKey": "SVXzNUFID2VqiHrCqWc1C0E8emM7XbcUfNg2mZu72Oo"
-//   }
-// }
 {
     "galaxy.meteor.com": {
       "env": {
@@ -16,13 +6,11 @@
       }
     },
     "public": {
-        "vapidPublicKey": "BHLrfMTYHnuj2GXwZLYS5bchaMlLRbNAcrhQzlTHLRymTTJtaEtQim6ZTuSTmSUfhIEWWYimjtSX3em7RBoQRD0"
-      },
-      "vapid": {
-        "email": "mailto:your-email@example.com",
-        "publicKey": "BHLrfMTYHnuj2GXwZLYS5bchaMlLRbNAcrhQzlTHLRymTTJtaEtQim6ZTuSTmSUfhIEWWYimjtSX3em7RBoQRD0",
-        "privateKey": "SVXzNUFID2VqiHrCqWc1C0E8emM7XbcUfNg2mZu72Oo"
-      }
+      "vapidPublicKey": "BHLrfMTYHnuj2GXwZLYS5bchaMlLRbNAcrhQzlTHLRymTTJtaEtQim6ZTuSTmSUfhIEWWYimjtSX3em7RBoQRD0"
+    },
+    "vapid": {
+      "email": "mailto:your-email@example.com",
+      "publicKey": "BHLrfMTYHnuj2GXwZLYS5bchaMlLRbNAcrhQzlTHLRymTTJtaEtQim6ZTuSTmSUfhIEWWYimjtSX3em7RBoQRD0",
+      "privateKey": "SVXzNUFID2VqiHrCqWc1C0E8emM7XbcUfNg2mZu72Oo"
+    }
   }
-
-//   export MONGO_URL="mongodb+srv://shad:admin123@cluster0.numgyjb.mongodb.net/community-app?retryWrites=true&w=majority"
