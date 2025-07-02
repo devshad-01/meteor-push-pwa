@@ -18,10 +18,11 @@ export const Dashboard: React.FC = () => {
 
   return (
     <div style={{
-      minHeight: '100vh',
+      height: '100vh',
       background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
       display: 'flex',
-      flexDirection: 'column'
+      flexDirection: 'column',
+      overflow: 'hidden'
     }}>
       {/* Header */}
       <header style={{
@@ -29,7 +30,8 @@ export const Dashboard: React.FC = () => {
         backdropFilter: 'blur(20px)',
         borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
         padding: '20px',
-        color: 'white'
+        color: 'white',
+        flexShrink: 0
       }}>
         <div style={{
           display: 'flex',
@@ -118,8 +120,9 @@ export const Dashboard: React.FC = () => {
       {/* Main Content */}
       <main style={{
         flex: 1,
-        padding: '20px',
-        overflowY: 'auto'
+        padding: '20px 20px 100px 20px',
+        overflow: 'hidden',
+        display: 'flex'
       }}>
         <div style={{
           background: 'rgba(255, 255, 255, 0.95)',
@@ -128,27 +131,41 @@ export const Dashboard: React.FC = () => {
           padding: '24px',
           maxWidth: '800px',
           margin: '0 auto',
-          minHeight: 'calc(100vh - 200px)',
+          width: '100%',
           boxShadow: '0 20px 40px rgba(0, 0, 0, 0.1)',
-          border: '1px solid rgba(255, 255, 255, 0.2)'
+          border: '1px solid rgba(255, 255, 255, 0.2)',
+          display: 'flex',
+          flexDirection: 'column',
+          overflow: 'hidden'
         }}>
-          {activeTab === 'notifications' && (
-            <NotificationCenter userId={user!._id} onUnreadCountChange={setUnreadCount} />
-          )}
-          {activeTab === 'users' && <UsersList currentUserId={user!._id} />}
-          {activeTab === 'compose' && <NotificationComposer currentUserId={user!._id} />}
+          <div style={{
+            flex: 1,
+            overflow: 'auto',
+            paddingRight: '4px'
+          }}>
+            {activeTab === 'notifications' && (
+              <NotificationCenter userId={user!._id} onUnreadCountChange={setUnreadCount} />
+            )}
+            {activeTab === 'users' && <UsersList currentUserId={user!._id} />}
+            {activeTab === 'compose' && <NotificationComposer currentUserId={user!._id} />}
+          </div>
         </div>
       </main>
 
-      {/* Bottom Navigation */}
+      {/* Bottom Navigation - Fixed */}
       <nav style={{
+        position: 'fixed',
+        bottom: 0,
+        left: 0,
+        right: 0,
         background: 'rgba(255, 255, 255, 0.95)',
         backdropFilter: 'blur(20px)',
         borderTop: '1px solid rgba(255, 255, 255, 0.2)',
         padding: '12px 20px 24px',
         display: 'flex',
         justifyContent: 'center',
-        gap: '40px'
+        gap: '40px',
+        zIndex: 1000
       }}>
         {tabs.map((tab) => (
           <button

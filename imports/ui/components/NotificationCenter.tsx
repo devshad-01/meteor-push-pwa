@@ -1,5 +1,5 @@
 // Notification Center Component using Meteor Accounts
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Meteor } from 'meteor/meteor';
 import { useTracker } from 'meteor/react-meteor-data';
 import { UserNotifications } from '/imports/api/users';
@@ -13,16 +13,39 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({
   userId, 
   onUnreadCountChange 
 }) => {
+  // Check if userId matches current user
+  const currentUserId = useTracker(() => Meteor.userId(), []);
+  
+  console.log('NotificationCenter props - userId:', userId);
+  console.log('NotificationCenter current user:', currentUserId);
+  
   // Use reactive data from Meteor
   const { notifications, isReady } = useTracker(() => {
+    console.log('useTracker running for userId:', userId);
     const handle = Meteor.subscribe('userNotifications');
     
+    // Force reactivity by checking if we're ready first
+    if (!handle.ready()) {
+      console.log('Subscription not ready yet');
+      return {
+        notifications: [],
+        isReady: false
+      };
+    }
+    
+    const notifs = UserNotifications.find(
+      { toUserId: userId },
+      { sort: { createdAt: -1 } }
+    ).fetch();
+    
+    console.log('NotificationCenter - userId:', userId);
+    console.log('NotificationCenter - notifications found:', notifs.length);
+    console.log('NotificationCenter - notifications:', notifs);
+    console.log('NotificationCenter - current user ID:', Meteor.userId());
+    
     return {
-      notifications: UserNotifications.find(
-        { toUserId: userId },
-        { sort: { createdAt: -1 } }
-      ).fetch(),
-      isReady: handle.ready()
+      notifications: notifs,
+      isReady: true
     };
   }, [userId]);
 
@@ -32,12 +55,12 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({
     onUnreadCountChange(unreadCount);
   }, [notifications, onUnreadCountChange]);
 
-  const markAsRead = (notificationId: string) => {
-    Meteor.call('userNotifications.markAsRead', notificationId, (error: any) => {
-      if (error) {
-        console.error('Error marking notification as read:', error);
-      }
-    });
+  const markAsRead = async (notificationId: string) => {
+    try {
+      await Meteor.callAsync('userNotifications.markAsRead', notificationId);
+    } catch (error) {
+      console.error('Error marking notification as read:', error);
+    }
   };
 
   const formatTimeAgo = (date: Date) => {
@@ -107,7 +130,11 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({
   }
 
   return (
-    <div style={{ padding: '20px' }}>
+    <div style={{ 
+      padding: '20px',
+      height: '100%',
+      overflow: 'auto'
+    }}>
       <h3 style={{ margin: '0 0 20px 0', color: '#1a1a1a', fontSize: '20px', fontWeight: 600 }}>
         Notifications
       </h3>
@@ -125,7 +152,34 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({
           </p>
         </div>
       ) : (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+        <div 
+          className="notifications-container"
+          style={{ 
+            display: 'flex', 
+            flexDirection: 'column', 
+            gap: '12px',
+            maxHeight: 'calc(100vh - 300px)',
+            overflow: 'auto',
+            paddingRight: '8px'
+          }}
+        >
+          {/* Custom scrollbar styles */}
+          <style>{`
+            .notifications-container::-webkit-scrollbar {
+              width: 6px;
+            }
+            .notifications-container::-webkit-scrollbar-track {
+              background: #f1f1f1;
+              border-radius: 3px;
+            }
+            .notifications-container::-webkit-scrollbar-thumb {
+              background: #c1c1c1;
+              border-radius: 3px;
+            }
+            .notifications-container::-webkit-scrollbar-thumb:hover {
+              background: #a1a1a1;
+            }
+          `}</style>
           {notifications.map((notification) => (
             <div 
               key={notification._id}

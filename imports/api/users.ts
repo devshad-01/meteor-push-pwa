@@ -74,10 +74,13 @@ if (Meteor.isServer) {
   });
 
   Meteor.publish('userNotifications', function () {
+    console.log('userNotifications publication called, this.userId:', this.userId);
     if (!this.userId) {
       return this.ready();
     }
-    return UserNotifications.find({ toUserId: this.userId });
+    const cursor = UserNotifications.find({ toUserId: this.userId });
+    console.log('Publishing notifications for user:', this.userId);
+    return cursor;
   });
 }
 
@@ -131,6 +134,7 @@ Meteor.methods({
 Meteor.methods({
   'userNotifications.send': async function (toUserId: string, title: string, message: string) {
     console.log('userNotifications.send called, this.userId:', this.userId);
+    console.log('userNotifications.send params - toUserId:', toUserId, 'title:', title, 'message:', message);
     check(toUserId, String);
     check(title, String);
     check(message, String);
@@ -142,28 +146,50 @@ Meteor.methods({
     const fromUser = await Meteor.users.findOneAsync(this.userId);
     const toUser = await Meteor.users.findOneAsync(toUserId);
 
+    console.log('fromUser found:', !!fromUser);
+    console.log('toUser found:', !!toUser);
+
     if (!fromUser || !toUser) {
       throw new Meteor.Error('user-not-found', 'User not found');
     }
 
-    const notificationId = await UserNotifications.insertAsync({
+    const notificationData = {
       fromUserId: this.userId,
       toUserId,
-      fromUserName: (fromUser.profile as any)?.name || 'Anonymous',
+      fromUserName: (fromUser.profile as any)?.name || fromUser.emails?.[0]?.address || 'Anonymous',
       title,
       message,
       createdAt: new Date(),
       read: false
-    });
+    };
 
-    // Send push notification if user has subscription
-    if ((toUser.profile as any)?.notificationSubscription) {
-      Meteor.call('notifications.send', toUserId, {
-        title: `${(fromUser.profile as any)?.name || 'Someone'}: ${title}`,
-        body: message,
-        icon: '/icons/icon-192x192.svg',
-        badge: '/icons/icon-192x192.svg'
-      });
+    console.log('About to insert notification:', notificationData);
+
+    const notificationId = await UserNotifications.insertAsync(notificationData);
+
+    console.log('Notification inserted with ID:', notificationId);
+    console.log('Notification for user:', toUserId);
+
+    // Send push notification if user has subscription in Subscriptions collection
+    console.log('Checking for subscription in Subscriptions collection for user:', toUserId);
+    try {
+      const result = await Meteor.callAsync('subscriptions.getByUser', toUserId);
+      console.log('Subscription found for user:', toUserId, result ? 'Yes' : 'No');
+      
+      if (result) {
+        console.log('Sending individual push notification to user:', toUserId);
+        await Meteor.callAsync('notifications.send', toUserId, {
+          title: `${(fromUser.profile as any)?.name || 'Someone'}: ${title}`,
+          body: message,
+          icon: '/icons/icon-192x192.svg',
+          badge: '/icons/icon-192x192.svg'
+        });
+        console.log('Individual push notification sent successfully to user:', toUserId);
+      } else {
+        console.log('User does not have notification subscription in Subscriptions collection, skipping push notification');
+      }
+    } catch (error) {
+      console.error('Error checking subscription or sending notification for user:', toUserId, error);
     }
 
     return notificationId;

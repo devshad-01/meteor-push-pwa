@@ -73,10 +73,17 @@ export const NotificationComposer: React.FC<NotificationComposerProps> = ({ curr
   };
 
   return (
-    <div className="notification-composer">
+    <div className="notification-composer" style={{
+      height: '100%',
+      overflow: 'auto',
+      paddingRight: '8px'
+    }}>
       <h3>Send Notification</h3>
       
-      <form onSubmit={handleSubmit} className="composer-form">
+      <form onSubmit={handleSubmit} className="composer-form" style={{
+        maxHeight: 'calc(100vh - 300px)',
+        overflow: 'auto'
+      }}>
         <div className="form-group">
           <label>Send to:</label>
           <select
@@ -173,6 +180,24 @@ export const NotificationComposer: React.FC<NotificationComposerProps> = ({ curr
           display: flex;
           flex-direction: column;
           gap: 20px;
+        }
+
+        .composer-form::-webkit-scrollbar {
+          width: 6px;
+        }
+
+        .composer-form::-webkit-scrollbar-track {
+          background: #f1f1f1;
+          border-radius: 3px;
+        }
+
+        .composer-form::-webkit-scrollbar-thumb {
+          background: #c1c1c1;
+          border-radius: 3px;
+        }
+
+        .composer-form::-webkit-scrollbar-thumb:hover {
+          background: #a1a1a1;
         }
 
         .form-group {

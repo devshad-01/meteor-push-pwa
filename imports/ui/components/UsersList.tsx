@@ -114,9 +114,16 @@ export const UsersList: React.FC<UsersListProps> = ({ currentUserId }) => {
   }
 
   return (
-    <div className="users-list">
+    <div className="users-list" style={{
+      height: '100%',
+      overflow: 'auto',
+      paddingRight: '8px'
+    }}>
       <h3>Users ({users.length})</h3>
-      <div className="users-grid">
+      <div className="users-grid" style={{
+        maxHeight: 'calc(100vh - 300px)',
+        overflow: 'auto'
+      }}>
         {users.map((user) => (
           <div key={user._id} className="user-card">
             <div className="user-avatar-container">
@@ -146,6 +153,24 @@ export const UsersList: React.FC<UsersListProps> = ({ currentUserId }) => {
           display: grid;
           grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
           gap: 16px;
+        }
+
+        .users-grid::-webkit-scrollbar {
+          width: 6px;
+        }
+
+        .users-grid::-webkit-scrollbar-track {
+          background: #f1f1f1;
+          border-radius: 3px;
+        }
+
+        .users-grid::-webkit-scrollbar-thumb {
+          background: #c1c1c1;
+          border-radius: 3px;
+        }
+
+        .users-grid::-webkit-scrollbar-thumb:hover {
+          background: #a1a1a1;
         }
 
         .user-card {
