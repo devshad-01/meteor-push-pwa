@@ -15,33 +15,67 @@ self.addEventListener('activate', (event) => {
 
 // Push event - handles incoming push notifications
 self.addEventListener('push', (event) => {
-  console.log('Push event received:', event);
+  console.log('🔔 Push event received:', event);
+  console.log('🔔 Push event data:', event.data ? event.data.text() : 'No data');
   
   if (event.data) {
-    const data = event.data.json();
-    const { message, body, icon, badge, url } = data;
-    
-    const options = {
-      body: body || 'You have a new notification',
-      icon: icon || '/icons/icon-192x192.svg',
-      badge: badge || '/icons/icon-192x192.svg',
-      data: { url: url || '/' },
-      actions: [
-        {
-          action: 'open',
-          title: 'Open App'
-        },
-        {
-          action: 'close',
-          title: 'Close'
-        }
-      ],
-      requireInteraction: true,
-      vibrate: [200, 100, 200]
-    };
-    
+    try {
+      const data = event.data.json();
+      console.log('🔔 Parsed push data:', data);
+      const { message, body, icon, badge, url, requireInteraction } = data;
+      
+      const options = {
+        body: body || 'You have a new notification',
+        icon: icon || '/icons/icon-192x192.svg',
+        badge: badge || '/icons/icon-192x192.svg',
+        data: { url: url || '/' },
+        actions: [
+          {
+            action: 'open',
+            title: 'Open App'
+          },
+          {
+            action: 'close',
+            title: 'Close'
+          }
+        ],
+        requireInteraction: requireInteraction !== false, // Force interaction by default
+        vibrate: [200, 100, 200],
+        tag: 'notification-' + Date.now(), // Unique tag to prevent grouping
+        renotify: true // Show even if similar notification exists
+      };
+      
+      console.log('🔔 Showing notification with options:', options);
+      
+      event.waitUntil(
+        self.registration.showNotification(message || 'Meteor PWA', options)
+          .then(() => {
+            console.log('🔔 Notification shown successfully');
+          })
+          .catch((error) => {
+            console.error('🔔 Error showing notification:', error);
+          })
+      );
+    } catch (error) {
+      console.error('🔔 Error parsing push data:', error);
+      // Fallback notification
+      event.waitUntil(
+        self.registration.showNotification('New Notification', {
+          body: 'You have a new message',
+          icon: '/icons/icon-192x192.svg',
+          requireInteraction: true
+        })
+      );
+    }
+  } else {
+    console.log('🔔 No data in push event, showing fallback notification');
+    // Fallback notification
     event.waitUntil(
-      self.registration.showNotification(message || 'Meteor PWA', options)
+      self.registration.showNotification('New Notification', {
+        body: 'You have a new message',
+        icon: '/icons/icon-192x192.svg',
+        requireInteraction: true
+      })
     );
   }
 });

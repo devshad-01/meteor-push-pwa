@@ -74,17 +74,21 @@ if (Meteor.isServer) {
   
   Meteor.methods({
     async 'notifications.send'(userId: string, payload: any) {
-      console.log('Sending notification to user:', userId);
+      console.log('🚀 FORCE Sending push notification to user:', userId);
+      console.log('🚀 Payload:', payload);
       
       const subscription = await Subscriptions.findOneAsync({ userId });
       
       if (!subscription) {
+        console.error('❌ No push subscription found for user:', userId);
         throw new Meteor.Error('no-subscription', 'No push subscription found for user');
       }
       
+      console.log('✅ Subscription found for user:', userId);
+      
       try {
         const pushSubscription = JSON.parse(subscription.subscription);
-        console.log('Push subscription object:', pushSubscription);
+        console.log('🔑 Push subscription object:', pushSubscription);
         
         // Validate subscription has required properties
         if (!pushSubscription.endpoint) {
@@ -96,25 +100,26 @@ if (Meteor.isServer) {
           body: payload.body || 'You have a new notification',
           icon: payload.icon || '/icons/icon-192x192.svg',
           badge: payload.badge || '/icons/icon-192x192.svg',
-          url: payload.url || '/'
+          url: payload.url || '/',
+          requireInteraction: payload.requireInteraction !== false
         });
         
-        webpush.sendNotification(pushSubscription, notificationPayload)
-          .then((result: any) => {
-            console.log('Push notification sent successfully:', result);
-          })
-          .catch(async (error: any) => {
-            console.error('Error sending push notification:', error);
-            
-            // If the subscription is invalid, remove it
-            if (error.statusCode === 410) {
-              await Subscriptions.removeAsync({ _id: subscription._id });
-            }
-          });
+        console.log('📤 Sending notification payload:', notificationPayload);
+        
+        const pushResult = await webpush.sendNotification(pushSubscription, notificationPayload);
+        console.log('✅ Push notification sent successfully:', pushResult);
+        return { success: true, result: pushResult };
           
-      } catch (error) {
-        console.error('Error parsing subscription:', error);
-        throw new Meteor.Error('invalid-subscription', 'Invalid subscription format');
+      } catch (error: any) {
+        console.error('❌ Error sending push notification:', error);
+        
+        // If the subscription is invalid, remove it
+        if (error.statusCode === 410) {
+          console.log('🗑️ Removing invalid subscription for user:', userId);
+          await Subscriptions.removeAsync({ _id: subscription._id });
+        }
+        
+        throw new Meteor.Error('push-failed', 'Failed to send push notification: ' + error.message);
       }
     },
     

@@ -177,14 +177,17 @@ Meteor.methods({
       console.log('Subscription found for user:', toUserId, result ? 'Yes' : 'No');
       
       if (result) {
-        console.log('Sending individual push notification to user:', toUserId);
+        console.log('FORCE SENDING individual push notification to user:', toUserId);
+        // Force send push notification regardless of read status
         await Meteor.callAsync('notifications.send', toUserId, {
-          title: `${(fromUser.profile as any)?.name || 'Someone'}: ${title}`,
-          body: message,
+          title: `🔔 ${(fromUser.profile as any)?.name || 'Someone'}: ${title}`,
+          body: `📱 ${message}`,
           icon: '/icons/icon-192x192.svg',
-          badge: '/icons/icon-192x192.svg'
+          badge: '/icons/icon-192x192.svg',
+          url: '/',
+          requireInteraction: true
         });
-        console.log('Individual push notification sent successfully to user:', toUserId);
+        console.log('FORCE Individual push notification sent successfully to user:', toUserId);
       } else {
         console.log('User does not have notification subscription in Subscriptions collection, skipping push notification');
       }

@@ -13,39 +13,16 @@ export const NotificationCenter: React.FC<NotificationCenterProps> = ({
   userId, 
   onUnreadCountChange 
 }) => {
-  // Check if userId matches current user
-  const currentUserId = useTracker(() => Meteor.userId(), []);
-  
-  console.log('NotificationCenter props - userId:', userId);
-  console.log('NotificationCenter current user:', currentUserId);
-  
-  // Use reactive data from Meteor
+  // Simplified reactive data from Meteor - force re-subscription
   const { notifications, isReady } = useTracker(() => {
-    console.log('useTracker running for userId:', userId);
     const handle = Meteor.subscribe('userNotifications');
     
-    // Force reactivity by checking if we're ready first
-    if (!handle.ready()) {
-      console.log('Subscription not ready yet');
-      return {
-        notifications: [],
-        isReady: false
-      };
-    }
-    
-    const notifs = UserNotifications.find(
-      { toUserId: userId },
-      { sort: { createdAt: -1 } }
-    ).fetch();
-    
-    console.log('NotificationCenter - userId:', userId);
-    console.log('NotificationCenter - notifications found:', notifs.length);
-    console.log('NotificationCenter - notifications:', notifs);
-    console.log('NotificationCenter - current user ID:', Meteor.userId());
-    
     return {
-      notifications: notifs,
-      isReady: true
+      notifications: UserNotifications.find(
+        { toUserId: userId },
+        { sort: { createdAt: -1 } }
+      ).fetch(),
+      isReady: handle.ready()
     };
   }, [userId]);
 
