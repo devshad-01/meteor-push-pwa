@@ -1,0 +1,6 @@
+<!-- Simple SVG icon that can be used as a placeholder -->
+<svg width="192" height="192" xmlns="http://www.w3.org/2000/svg">
+  <rect width="192" height="192" fill="#667eea" rx="20"/>
+  <text x="96" y="100" font-family="Arial, sans-serif" font-size="80" fill="white" text-anchor="middle" dominant-baseline="middle">🚀</text>
+  <text x="96" y="150" font-family="Arial, sans-serif" font-size="20" fill="white" text-anchor="middle" dominant-baseline="middle">PWA</text>
+</svg>
