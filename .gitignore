@@ -1,6 +1,6 @@
 node_modules/
 .meteor/local/
-
+settings.json
 .env
 *.log
 dist/
