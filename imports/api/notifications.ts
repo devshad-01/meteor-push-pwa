@@ -54,13 +54,23 @@ Meteor.methods({
 // Server-side push notification functionality
 if (Meteor.isServer) {
   const webpush = require('web-push');
-  // Use Meteor.settings for VAPID configuration
-  const vapid = Meteor.settings.vapid || {};
-  webpush.setVapidDetails(
-    vapid.email || 'mailto:your-email@example.com',
-    vapid.publicKey || '',
-    vapid.privateKey || ''
-  );
+  
+  // Use Meteor.settings for VAPID configuration with error handling
+  try {
+    const vapid = Meteor.settings.vapid || {};
+    if (vapid.publicKey && vapid.privateKey) {
+      webpush.setVapidDetails(
+        vapid.email || 'mailto:your-email@example.com',
+        vapid.publicKey,
+        vapid.privateKey
+      );
+      console.log('✅ VAPID keys configured for push notifications');
+    } else {
+      console.warn('⚠️ VAPID keys not configured - push notifications disabled');
+    }
+  } catch (error) {
+    console.warn('⚠️ Failed to configure VAPID keys - push notifications disabled:', error);
+  }
   
   Meteor.methods({
     async 'notifications.send'(userId: string, payload: any) {
