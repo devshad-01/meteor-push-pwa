@@ -9,6 +9,7 @@ import { OnlineUsers } from '../api/collections';
 import { MinimalNotificationManager } from './MinimalNotificationManager';
 import { PWAInstaller } from './PWAInstaller';
 import { showSuccessToast, showErrorToast } from '../stores/notificationStore';
+import { useNotificationsSync } from '../stores/useNotificationsSync';
 
 export const UltraCompactDashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -33,6 +34,8 @@ export const UltraCompactDashboard: React.FC = () => {
   useEffect(() => {
     trackPageView('/dashboard');
   }, []);
+
+  useNotificationsSync();
 
   const sendBroadcast = async () => {
     try {

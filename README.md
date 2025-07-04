@@ -333,6 +333,8 @@ docker run -p 3000:3000 pwa-app
 - `notifications.markAsRead(notificationId)` - Mark as read
 - `notifications.remove(notificationId)` - Delete notification
 
+> **Note:** Notification counters and unread counts are always real-time and accurate, powered by Meteor 3 async methods and Zustand state sync. All notification state is kept in sync with the server using a custom hook (`useNotificationsSync`).
+
 ### Tracking Methods
 
 - `tracking.updateStatus(status, sessionId)` - Update user status

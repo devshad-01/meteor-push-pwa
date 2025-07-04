@@ -5,8 +5,10 @@ import { Meteor } from 'meteor/meteor';
 import { useNotificationStore } from '../stores/notificationStore';
 import { useTrackingStore } from '../stores/trackingStore';
 import { Notifications } from '../api/collections';
+import { useNotificationsSync } from '../stores/useNotificationsSync';
 
 export const NotificationCenter: React.FC = () => {
+  useNotificationsSync();
   const navigate = useNavigate();
   const { markAsRead, markAllAsRead, removeNotification, clearAll } = useNotificationStore();
   const { trackPageView, trackUserAction } = useTrackingStore();
