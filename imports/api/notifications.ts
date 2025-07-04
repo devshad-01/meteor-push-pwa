@@ -1,12 +1,6 @@
 import { Meteor } from 'meteor/meteor';
-import { Mongo } from 'meteor/mongo';
 import { check } from 'meteor/check';
-
-// Collections
-export const Subscriptions = new Mongo.Collection('subscriptions');
-export const Notifications = new Mongo.Collection('notifications');
-export const UserActivity = new Mongo.Collection('userActivity');
-export const OnlineUsers = new Mongo.Collection('onlineUsers');
+import { Subscriptions, Notifications, UserActivity, OnlineUsers } from './collections';
 
 // Notification interface
 interface NotificationDoc {
@@ -72,6 +66,7 @@ Meteor.methods({
     return await Subscriptions.removeAsync({ userId });
   },
   
+
   async 'subscriptions.clearAll'() {
     console.log('Clearing all subscriptions');
     return await Subscriptions.removeAsync({});
@@ -246,6 +241,17 @@ Meteor.methods({
     }
     
     return userIds.length;
+  },
+  
+  async 'notifications.sendBroadcast'(notification: {
+    title: string;
+    body: string;
+    priority?: 'low' | 'normal' | 'high' | 'urgent';
+    data?: any;
+    actions?: Array<{ action: string; title: string; icon?: string }>;
+  }) {
+    // Call the existing broadcast method
+    return await Meteor.callAsync('notifications.broadcast', notification);
   },
   
   async 'notifications.markAsRead'(notificationId: string) {

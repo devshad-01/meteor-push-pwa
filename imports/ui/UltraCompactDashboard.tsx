@@ -5,15 +5,16 @@ import { useTracker } from 'meteor/react-meteor-data';
 import { useAuthStore } from '../stores/authStore';
 import { useNotificationStore } from '../stores/notificationStore';
 import { useTrackingStore } from '../stores/trackingStore';
-import { Notifications, OnlineUsers } from '../api/notifications';
+import { OnlineUsers } from '../api/collections';
 import { MinimalNotificationManager } from './MinimalNotificationManager';
+import { PWAInstaller } from './PWAInstaller';
 import { showSuccessToast, showErrorToast } from '../stores/notificationStore';
 
 export const UltraCompactDashboard: React.FC = () => {
   const navigate = useNavigate();
   const { user, logout } = useAuthStore();
   const { notifications, unreadCount } = useNotificationStore();
-  const { onlineUsers, trackPageView, trackUserAction } = useTrackingStore();
+  const { trackPageView, trackUserAction } = useTrackingStore();
   const [onlineCount, setOnlineCount] = useState(0);
 
   // Real-time subscriptions
@@ -22,11 +23,6 @@ export const UltraCompactDashboard: React.FC = () => {
     const onlineUsersSub = Meteor.subscribe('onlineUsers');
     
     if (notificationsSub.ready() && onlineUsersSub.ready()) {
-      const notifications = Notifications.find(
-        { userId: user?._id },
-        { sort: { createdAt: -1 }, limit: 5 }
-      ).fetch();
-      
       const onlineUsers = OnlineUsers.find({}).count();
       setOnlineCount(onlineUsers);
     }
@@ -84,6 +80,7 @@ export const UltraCompactDashboard: React.FC = () => {
           <span style={styles.username}>{user?.username}</span>
         </div>
         <div style={styles.headerActions}>
+          <PWAInstaller />
           <MinimalNotificationManager />
           <button onClick={logout} style={styles.logoutBtn}>
             🚪

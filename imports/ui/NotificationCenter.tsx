@@ -4,7 +4,7 @@ import { useTracker } from 'meteor/react-meteor-data';
 import { Meteor } from 'meteor/meteor';
 import { useNotificationStore } from '../stores/notificationStore';
 import { useTrackingStore } from '../stores/trackingStore';
-import { Notifications } from '../api/notifications';
+import { Notifications } from '../api/collections';
 
 export const NotificationCenter: React.FC = () => {
   const navigate = useNavigate();
