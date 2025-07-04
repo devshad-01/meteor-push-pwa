@@ -1,12 +1,16 @@
 {
   "name": "Meteor PWA Notifications",
   "short_name": "MeteorPWA",
-  "description": "A Meteor.js PWA with push notifications",
+  "description": "A Meteor.js PWA with push notifications and real-time features",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
-  "theme_color": "#000000",
+  "theme_color": "#667eea",
   "orientation": "portrait",
+  "scope": "/",
+  "lang": "en",
+  "categories": ["productivity", "utilities"],
+  "prefer_related_applications": false,
   "icons": [
     {
       "src": "/icons/icon-192x192.svg",
@@ -19,6 +23,20 @@
       "sizes": "512x512",
       "type": "image/svg+xml",
       "purpose": "maskable any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "View Notifications",
+      "short_name": "Notifications",
+      "description": "Check your latest notifications",
+      "url": "/?view=notifications",
+      "icons": [
+        {
+          "src": "/icons/icon-192x192.svg",
+          "sizes": "192x192"
+        }
+      ]
     }
   ]
 }

@@ -8,7 +8,7 @@ Meteor.startup(async () => {
   
   // Configure Accounts
   Accounts.config({
-    sendVerificationEmail: true,
+    sendVerificationEmail: false, // Disabled for development
     forbidClientAccountCreation: false,
     loginExpirationInDays: 30,
   });

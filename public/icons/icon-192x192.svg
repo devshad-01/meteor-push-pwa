@@ -1,6 +1,19 @@
-<!-- Simple SVG icon that can be used as a placeholder -->
 <svg width="192" height="192" xmlns="http://www.w3.org/2000/svg">
-  <rect width="192" height="192" fill="#667eea" rx="20"/>
-  <text x="96" y="100" font-family="Arial, sans-serif" font-size="80" fill="white" text-anchor="middle" dominant-baseline="middle">🚀</text>
-  <text x="96" y="150" font-family="Arial, sans-serif" font-size="20" fill="white" text-anchor="middle" dominant-baseline="middle">PWA</text>
+  <defs>
+    <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#764ba2;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <rect width="192" height="192" fill="url(#grad1)" rx="24"/>
+  <g fill="#ffffff">
+    <!-- Mobile phone icon -->
+    <rect x="72" y="32" width="48" height="80" rx="8" stroke="#fff" stroke-width="3" fill="none"/>
+    <rect x="76" y="40" width="40" height="56" fill="#fff"/>
+    <circle cx="96" cy="104" r="3" fill="#fff"/>
+    
+    <!-- Download arrow -->
+    <path d="M96 128 L84 140 L90 140 L90 160 L102 160 L102 140 L108 140 Z" fill="#fff"/>
+    <rect x="78" y="164" width="36" height="4" rx="2" fill="#fff"/>
+  </g>
 </svg>
