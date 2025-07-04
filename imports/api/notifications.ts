@@ -1,17 +1,48 @@
 import { Meteor } from 'meteor/meteor';
 import { Mongo } from 'meteor/mongo';
+import { check } from 'meteor/check';
 
-// Collection to store user push subscriptions
+// Collections
 export const Subscriptions = new Mongo.Collection('subscriptions');
+export const Notifications = new Mongo.Collection('notifications');
+export const UserActivity = new Mongo.Collection('userActivity');
+export const OnlineUsers = new Mongo.Collection('onlineUsers');
 
-// Meteor methods for handling push notifications
+// Notification interface
+interface NotificationDoc {
+  _id?: string;
+  userId: string;
+  title: string;
+  body: string;
+  type: 'personal' | 'broadcast';
+  priority: 'low' | 'normal' | 'high' | 'urgent';
+  read: boolean;
+  createdAt: Date;
+  readAt?: Date;
+  data?: any;
+  actions?: Array<{
+    action: string;
+    title: string;
+    icon?: string;
+  }>;
+}
+
+// Create indexes for better performance
+if (Meteor.isServer) {
+  Meteor.startup(() => {
+    Notifications.createIndex({ userId: 1, createdAt: -1 });
+    Notifications.createIndex({ type: 1, createdAt: -1 });
+    UserActivity.createIndex({ userId: 1, timestamp: -1 });
+    OnlineUsers.createIndex({ userId: 1 });
+    OnlineUsers.createIndex({ lastSeen: 1 });
+  });
+}
+
+// Meteor methods for handling push subscriptions
 Meteor.methods({
   async 'subscriptions.add'(subscription: any, userId?: string) {
     console.log('=== ADDING SUBSCRIPTION ===');
     console.log('User ID:', userId);
-    console.log('Raw subscription parameter:', subscription);
-    console.log('Subscription type:', typeof subscription);
-    console.log('Subscription keys:', Object.keys(subscription || {}));
     console.log('Subscription endpoint:', subscription?.endpoint);
     
     // Remove any existing subscription for this user
@@ -44,108 +75,335 @@ Meteor.methods({
   async 'subscriptions.clearAll'() {
     console.log('Clearing all subscriptions');
     return await Subscriptions.removeAsync({});
-  },
-  
-  async 'subscriptions.getByUser'(userId: string) {
-    return await Subscriptions.findOneAsync({ userId });
   }
 });
 
-// Server-side push notification functionality
-if (Meteor.isServer) {
-  const webpush = require('web-push');
-  // Use Meteor.settings for VAPID configuration
-  const vapid = Meteor.settings.vapid || {};
-  webpush.setVapidDetails(
-    vapid.email || 'mailto:your-email@example.com',
-    vapid.publicKey || '',
-    vapid.privateKey || ''
-  );
-  
-  Meteor.methods({
-    async 'notifications.send'(userId: string, payload: any) {
-      console.log('Sending notification to user:', userId);
-      
-      const subscription = await Subscriptions.findOneAsync({ userId });
-      
-      if (!subscription) {
-        throw new Meteor.Error('no-subscription', 'No push subscription found for user');
-      }
-      
+// Enhanced notification methods
+Meteor.methods({
+  async 'notifications.send'(targetUserId: string, notification: {
+    title: string;
+    body: string;
+    priority?: 'low' | 'normal' | 'high' | 'urgent';
+    data?: any;
+    actions?: Array<{ action: string; title: string; icon?: string }>;
+  }) {
+    check(targetUserId, String);
+    check(notification, Object);
+    
+    console.log('Sending notification to user:', targetUserId);
+    
+    // Create notification document
+    const notificationDoc: NotificationDoc = {
+      userId: targetUserId,
+      title: notification.title,
+      body: notification.body,
+      type: 'personal',
+      priority: notification.priority || 'normal',
+      read: false,
+      createdAt: new Date(),
+      data: notification.data,
+      actions: notification.actions
+    };
+    
+    // Save to database
+    const notificationId = await Notifications.insertAsync(notificationDoc);
+    
+    // Send push notification
+    const subscription = await Subscriptions.findOneAsync({ userId: targetUserId });
+    
+    if (subscription) {
       try {
         const pushSubscription = JSON.parse(subscription.subscription);
-        console.log('Push subscription object:', pushSubscription);
         
-        // Validate subscription has required properties
-        if (!pushSubscription.endpoint) {
-          throw new Error('Subscription missing endpoint');
-        }
-        
-        const notificationPayload = JSON.stringify({
-          message: payload.title || 'New Notification',
-          body: payload.body || 'You have a new notification',
-          icon: payload.icon || '/icons/icon-192x192.svg',
-          badge: payload.badge || '/icons/icon-192x192.svg',
-          url: payload.url || '/'
+        const pushPayload = JSON.stringify({
+          title: notification.title,
+          body: notification.body,
+          icon: '/icons/icon-192x192.svg',
+          badge: '/icons/icon-192x192.svg',
+          tag: `notification-${notificationId}`,
+          priority: notification.priority,
+          data: {
+            notificationId,
+            priority: notification.priority,
+            timestamp: Date.now(),
+            actions: notification.actions,
+            ...notification.data
+          },
+          actions: notification.actions || []
         });
         
-        webpush.sendNotification(pushSubscription, notificationPayload)
-          .then((result: any) => {
-            console.log('Push notification sent successfully:', result);
-          })
-          .catch(async (error: any) => {
-            console.error('Error sending push notification:', error);
-            
-            // If the subscription is invalid, remove it
-            if (error.statusCode === 410) {
-              await Subscriptions.removeAsync({ _id: subscription._id });
-            }
+        console.log('Push payload:', pushPayload);
+        
+        if (Meteor.isServer) {
+          const webpush = require('web-push');
+          const vapid = Meteor.settings.vapid || {};
+          
+          console.log('VAPID config:', {
+            email: vapid.email,
+            publicKey: vapid.publicKey ? vapid.publicKey.substring(0, 20) + '...' : 'missing',
+            privateKey: vapid.privateKey ? 'present' : 'missing'
           });
           
-      } catch (error) {
-        console.error('Error parsing subscription:', error);
-        throw new Meteor.Error('invalid-subscription', 'Invalid subscription format');
-      }
-    },
-    
-    async 'notifications.broadcast'(payload: any) {
-      console.log('Broadcasting notification to all users');
-      
-      const subscriptions = await Subscriptions.find({}).fetchAsync();
-      
-      subscriptions.forEach((sub) => {
-        try {
-          const pushSubscription = JSON.parse(sub.subscription);
-          console.log('Broadcast push subscription object:', pushSubscription);
-          
-          // Validate subscription has required properties
-          if (!pushSubscription.endpoint) {
-            console.error('Subscription missing endpoint:', pushSubscription);
-            return;
+          if (!vapid.publicKey || !vapid.privateKey) {
+            throw new Error('VAPID keys not configured properly');
           }
           
-          const notificationPayload = JSON.stringify({
-            message: payload.title || 'Broadcast Notification',
-            body: payload.body || 'You have a new broadcast notification',
-            icon: payload.icon || '/icons/icon-192x192.svg',
-            badge: payload.badge || '/icons/icon-192x192.svg',
-            url: payload.url || '/'
-          });
+          webpush.setVapidDetails(
+            vapid.email || 'mailto:noreply@meteorpwa.com',
+            vapid.publicKey,
+            vapid.privateKey
+          );
           
-          webpush.sendNotification(pushSubscription, notificationPayload)
-            .catch(async (error: any) => {
-              console.error('Error sending broadcast notification:', error);
-              
-              // If the subscription is invalid, remove it
-              if (error.statusCode === 410) {
-                await Subscriptions.removeAsync({ _id: sub._id });
-              }
-            });
-            
-        } catch (error) {
-          console.error('Error processing subscription for broadcast:', error);
+          console.log('Sending push to endpoint:', pushSubscription.endpoint.substring(0, 50) + '...');
+          
+          const result = await webpush.sendNotification(pushSubscription, pushPayload);
+          console.log('Push notification sent successfully:', result.statusCode);
         }
-      });
+        
+      } catch (error) {
+        console.error('Error sending push notification:', error);
+        
+        // If the subscription is invalid, remove it
+        if ((error as any).statusCode === 410) {
+          await Subscriptions.removeAsync({ _id: subscription._id });
+        }
+      }
     }
+    
+    return notificationId;
+  },
+  
+  async 'notifications.broadcast'(notification: {
+    title: string;
+    body: string;
+    priority?: 'low' | 'normal' | 'high' | 'urgent';
+    data?: any;
+    actions?: Array<{ action: string; title: string; icon?: string }>;
+  }) {
+    check(notification, Object);
+    
+    console.log('Broadcasting notification to all users');
+    
+    // Get all subscribed users
+    const subscriptions = await Subscriptions.find({}).fetchAsync();
+    const userIds = subscriptions.map(s => s.userId).filter(Boolean);
+    
+    // Create notification documents for each user
+    const notificationDocs = userIds.map(userId => ({
+      userId,
+      title: notification.title,
+      body: notification.body,
+      type: 'broadcast' as const,
+      priority: notification.priority || 'normal',
+      read: false,
+      createdAt: new Date(),
+      data: notification.data,
+      actions: notification.actions
+    }));
+    
+    // Bulk insert notifications
+    if (notificationDocs.length > 0) {
+      await Promise.all(notificationDocs.map(doc => Notifications.insertAsync(doc)));
+    }
+    
+    // Send push notifications
+    const webpush = Meteor.isServer ? require('web-push') : null;
+    if (webpush) {
+      const vapid = Meteor.settings.vapid || {};
+      webpush.setVapidDetails(
+        vapid.email || 'mailto:your-email@example.com',
+        vapid.publicKey || '',
+        vapid.privateKey || ''
+      );
+      
+      const pushPayload = JSON.stringify({
+        title: notification.title,
+        body: notification.body,
+        icon: '/icons/icon-192x192.svg',
+        badge: '/icons/icon-192x192.svg',
+        tag: 'broadcast-notification',
+        data: {
+          type: 'broadcast',
+          priority: notification.priority,
+          actions: notification.actions,
+          ...notification.data
+        },
+        actions: notification.actions || []
+      });
+      
+      // Send to all subscriptions
+      await Promise.all(subscriptions.map(async (sub) => {
+        try {
+          const pushSubscription = JSON.parse(sub.subscription);
+          await webpush.sendNotification(pushSubscription, pushPayload);
+        } catch (error) {
+          console.error('Error sending broadcast notification:', error);
+          if ((error as any).statusCode === 410) {
+            await Subscriptions.removeAsync({ _id: sub._id });
+          }
+        }
+      }));
+    }
+    
+    return userIds.length;
+  },
+  
+  async 'notifications.markAsRead'(notificationId: string) {
+    check(notificationId, String);
+    
+    const userId = Meteor.userId();
+    if (!userId) {
+      throw new Meteor.Error('not-authorized', 'Must be logged in');
+    }
+    
+    return await Notifications.updateAsync(
+      { _id: notificationId, userId },
+      { $set: { read: true, readAt: new Date() } }
+    );
+  },
+  
+  async 'notifications.markAllAsRead'() {
+    const userId = Meteor.userId();
+    if (!userId) {
+      throw new Meteor.Error('not-authorized', 'Must be logged in');
+    }
+    
+    return await Notifications.updateAsync(
+      { userId, read: false },
+      { $set: { read: true, readAt: new Date() } },
+      { multi: true }
+    );
+  },
+  
+  async 'notifications.remove'(notificationId: string) {
+    check(notificationId, String);
+    
+    const userId = Meteor.userId();
+    if (!userId) {
+      throw new Meteor.Error('not-authorized', 'Must be logged in');
+    }
+    
+    return await Notifications.removeAsync({ _id: notificationId, userId });
+  },
+  
+  async 'notifications.clearAll'() {
+    const userId = Meteor.userId();
+    if (!userId) {
+      throw new Meteor.Error('not-authorized', 'Must be logged in');
+    }
+    
+    return await Notifications.removeAsync({ userId });
+  }
+});
+
+// Real-time tracking methods
+Meteor.methods({
+  async 'tracking.updateStatus'(status: 'online' | 'away' | 'offline', sessionId: string) {
+    check(status, String);
+    check(sessionId, String);
+    
+    const userId = Meteor.userId();
+    if (!userId) return;
+    
+    await OnlineUsers.upsertAsync(
+      { userId },
+      {
+        $set: {
+          userId,
+          username: (await Meteor.userAsync())?.username,
+          status,
+          lastSeen: new Date(),
+          sessionId
+        }
+      }
+    );
+    
+    // Remove offline users after 5 minutes
+    if (status === 'offline') {
+      Meteor.setTimeout(async () => {
+        await OnlineUsers.removeAsync({ userId, sessionId });
+      }, 5 * 60 * 1000);
+    }
+  },
+  
+  async 'tracking.heartbeat'(sessionId: string) {
+    check(sessionId, String);
+    
+    const userId = Meteor.userId();
+    if (!userId) return;
+    
+    await OnlineUsers.updateAsync(
+      { userId, sessionId },
+      { $set: { lastSeen: new Date() } }
+    );
+  },
+  
+  async 'tracking.disconnect'(sessionId: string) {
+    check(sessionId, String);
+    
+    const userId = Meteor.userId();
+    if (!userId) return;
+    
+    await OnlineUsers.removeAsync({ userId, sessionId });
+  },
+  
+  async 'tracking.logActivity'(activity: {
+    userId: string;
+    action: string;
+    timestamp: Date;
+    metadata?: any;
+    sessionId: string;
+  }) {
+    check(activity, Object);
+    
+    // Only log activities for authenticated users
+    if (!Meteor.userId()) return;
+    
+    return await UserActivity.insertAsync({
+      ...activity,
+      createdAt: new Date()
+    });
+  }
+});
+
+// Publications for real-time updates
+if (Meteor.isServer) {
+  Meteor.publish('notifications', function() {
+    if (!this.userId) {
+      return this.ready();
+    }
+    
+    return Notifications.find(
+      { userId: this.userId },
+      { sort: { createdAt: -1 }, limit: 50 }
+    );
+  });
+  
+  Meteor.publish('onlineUsers', function() {
+    if (!this.userId) {
+      return this.ready();
+    }
+    
+    // Clean up old entries first
+    const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+    OnlineUsers.removeAsync({ lastSeen: { $lt: fiveMinutesAgo } });
+    
+    return OnlineUsers.find({}, {
+      fields: { userId: 1, username: 1, status: 1, lastSeen: 1 }
+    });
+  });
+  
+  Meteor.publish('recentActivity', function(limit = 20) {
+    check(limit, Number);
+    
+    if (!this.userId) {
+      return this.ready();
+    }
+    
+    return UserActivity.find({}, {
+      sort: { timestamp: -1 },
+      limit: Math.min(limit, 100),
+      fields: { userId: 1, action: 1, timestamp: 1, metadata: 1 }
+    });
   });
 }

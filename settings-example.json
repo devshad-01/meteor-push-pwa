@@ -1,0 +1,11 @@
+{
+  "vapid": {
+    "email": "mailto:your-email@example.com",
+    "publicKey": "your-vapid-public-key-here",
+    "privateKey": "your-vapid-private-key-here"
+  },
+  "public": {
+    "vapidPublicKey": "your-vapid-public-key-here",
+    "appName": "PWA Notification App"
+  }
+}
