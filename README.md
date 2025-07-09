@@ -1,3 +1,38 @@
+# <p align="center"><img src="https://raw.githubusercontent.com/devshad-01/meteorjs-pwa-template/main/public/icons/icon-192x192.svg" width="64" alt="PWA Logo"/></p>
+
+<h1 align="center">Meteor PWA Template 🚀</h1>
+
+<p align="center">
+  <a href="https://github.com/devshad-01/meteorjs-pwa-template/stargazers"><img src="https://img.shields.io/github/stars/devshad-01/meteorjs-pwa-template?style=flat-square" alt="Stars"/></a>
+  <a href="https://github.com/devshad-01/meteorjs-pwa-template/network/members"><img src="https://img.shields.io/github/forks/devshad-01/meteorjs-pwa-template?style=flat-square" alt="Forks"/></a>
+  <a href="https://github.com/devshad-01/meteorjs-pwa-template/issues"><img src="https://img.shields.io/github/issues/devshad-01/meteorjs-pwa-template?style=flat-square" alt="Issues"/></a>
+  <a href="https://github.com/devshad-01/meteorjs-pwa-template/blob/main/LICENSE"><img src="https://img.shields.io/github/license/devshad-01/meteorjs-pwa-template?style=flat-square" alt="License"/></a>
+</p>
+
+<p align="center">
+  <b>Modern, production-ready PWA template with Meteor, React, push notifications, and real-time features.</b><br>
+  <a href="#demo">🌐 Live Demo</a> •
+  <a href="#features">Features</a> •
+  <a href="#quick-start">Quick Start</a> •
+  <a href="#why-star-this-repo">Why Star?</a>
+</p>
+
+---
+
+## ⭐ Star this repo!
+
+If you like this project, please [star it on GitHub](https://github.com/devshad-01/meteorjs-pwa-template) — it helps others discover it and motivates further development!
+
+---
+
+## 📸 Demo
+
+> **Live Demo:** [https://fierce-garden-82374-10.meteorapp.com](https://fierce-garden-82374-10.meteorapp.com)
+
+![PWA Demo Screenshot](public/icons/demo-screenshot.png)
+
+---
+
 # 🚀 Meteor PWA with Real-time Notifications & Authentication
 
 A comprehensive Progressive Web App built with Meteor 3.3, featuring real-time notifications, authentication, state management, and user tracking.
@@ -391,3 +426,21 @@ For PWA installation issues:
   - Has a registered service worker
   - Is served over HTTPS
   - Has proper icons (192px and 512px minimum)
+
+---
+
+## 🌟 Why Star This Repo?
+
+- **Stay Updated:** Get notified of new features and improvements
+- **Support Open Source:** Your star motivates further development
+- **Boost Discoverability:** More stars = more visibility for the project
+- **Join the Community:** Be part of a growing Meteor/React/PWA community
+
+---
+
+## 📢 Share & Contribute
+
+- **Share** this repo on Twitter, Reddit, Dev.to, or your favorite dev community!
+- **Submit issues** and feature requests — your feedback is welcome
+- **Open a PR** for bug fixes, docs, or new features
+- **Add a badge to your own project** if you use this template!
