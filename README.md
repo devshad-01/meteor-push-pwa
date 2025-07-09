@@ -1,4 +1,3 @@
-# <p align="center"><img src="https://raw.githubusercontent.com/devshad-01/meteor-push-pwa/main/public/icons/icon-192x192.svg" width="64" alt="PWA Logo"/></p>
 
 <h1 align="center">Meteor Push PWA 🚀</h1>
 
@@ -10,6 +9,7 @@
 </p>
 
 <p align="center">
+  <b>🚨 The easiest way to add <u>Web Push Notifications</u> to your Meteor app — with full iOS (Safari) support, no paid service required!</b><br>
   <b>Modern, production-ready PWA template with Meteor, React, push notifications, and real-time features.</b><br>
   <a href="#demo">🌐 Live Demo</a> •
   <a href="#features">Features</a> •
@@ -444,19 +444,3 @@ For PWA installation issues:
 - **Submit issues** and feature requests — your feedback is welcome
 - **Open a PR** for bug fixes, docs, or new features
 - **Add a badge to your own project** if you use this template!
-
----
-
-## ⚠️ iOS Web Push Support
-
-> **Heads up!**
->
-> Web Push on iOS (Safari, iPhone/iPad) is supported only on iOS 16.4+ and has unique limitations:
-> - Notification permissions and prompts behave differently than Android/desktop.
-> - Some notification features (actions, badges, vibration) may not work as expected.
-> - Always check for `Notification` and `serviceWorker` support in your code.
->
-> **Troubleshooting:**
-> - Make sure you’re testing on iOS 16.4+.
-> - Use HTTPS and a valid manifest.
-> - See the [iOS Web Push FAQ](#ios-web-push-faq) below for more tips.
