@@ -12,19 +12,65 @@ export const PWAInstaller: React.FC = () => {
   const [showBanner, setShowBanner] = useState(false);
   const [isDismissed, setIsDismissed] = useState(false);
   const [isIOS, setIsIOS] = useState(false);
+  const [isAndroid, setIsAndroid] = useState(false);
   const [showIOSInstructions, setShowIOSInstructions] = useState(false);
   const [isLocalhost, setIsLocalhost] = useState(false);
+  const [debugInfo, setDebugInfo] = useState('');
 
   useEffect(() => {
-    // Detect if we're on localhost/development
+    // Detect if we're on localhost/development (ngrok is considered production for PWA testing)
     const localhost = window.location.hostname === 'localhost' || 
-                     window.location.hostname === '127.0.0.1' ||
-                     window.location.hostname.includes('ngrok');
+                     window.location.hostname === '127.0.0.1';
     setIsLocalhost(localhost);
 
-    // Detect iOS
+    // Detect iOS and Android
     const iOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    const android = /Android/.test(navigator.userAgent);
     setIsIOS(iOS);
+    setIsAndroid(android);
+
+    // Debug info for troubleshooting
+    const debug = `Platform: ${navigator.userAgent}
+HTTPS: ${location.protocol === 'https:'}
+Localhost: ${localhost}
+iOS: ${iOS}
+Android: ${android}
+Service Worker: ${'serviceWorker' in navigator}
+BeforeInstallPrompt supported: ${'onbeforeinstallprompt' in window}`;
+    setDebugInfo(debug);
+    console.log('🔍 PWA Debug Info:', debug);
+
+    // Additional Android debugging
+    if (android) {
+      console.log('🤖 Android Device Detected - PWA Install Requirements Check:', {
+        hostname: window.location.hostname,
+        isHTTPS: location.protocol === 'https:',
+        hasManifest: !!document.querySelector('link[rel="manifest"]'),
+        hasServiceWorker: 'serviceWorker' in navigator,
+        isLocalhost: localhost,
+        localhostCheck: {
+          isLocalhost: window.location.hostname === 'localhost',
+          is127001: window.location.hostname === '127.0.0.1',
+          actualHostname: window.location.hostname
+        },
+        userAgent: navigator.userAgent,
+        supportsBIP: 'onbeforeinstallprompt' in window,
+        currentURL: window.location.href
+      });
+
+      // Check if service worker is registered
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.getRegistrations().then(registrations => {
+          console.log('🔧 Service Worker Status:', {
+            registrations: registrations.length,
+            active: registrations.map(reg => ({
+              scope: reg.scope,
+              state: reg.active?.state
+            }))
+          });
+        });
+      }
+    }
 
     // Check if already installed
     const isStandalone = window.matchMedia('(display-mode: standalone)').matches;
@@ -35,15 +81,7 @@ export const PWAInstaller: React.FC = () => {
     const dismissed = localStorage.getItem('pwa-install-dismissed');
     setIsDismissed(dismissed === 'true');
 
-    // For localhost, show install prompt regardless (for testing)
-    if (localhost && !isStandalone && !isIOSStandalone && !dismissed) {
-      setTimeout(() => {
-        setShowBanner(true);
-        setIsInstallable(true);
-      }, 2000);
-    }
-
-    // For iOS, show install prompt if not installed and not dismissed
+    // For iOS, show install prompt if not installed and not dismissed (works in production)
     if (iOS && !isIOSStandalone && !dismissed) {
       setTimeout(() => {
         setShowBanner(true);
@@ -54,20 +92,41 @@ export const PWAInstaller: React.FC = () => {
 
     // Listen for the beforeinstallprompt event (Android/Desktop on HTTPS)
     const handleBeforeInstallPrompt = (e: Event) => {
+      console.log('🚀 ANDROID: beforeinstallprompt event fired!', {
+        event: e,
+        eventType: e.type,
+        timestamp: new Date().toISOString(),
+        userAgent: navigator.userAgent,
+        hostname: window.location.hostname,
+        protocol: window.location.protocol,
+        isAndroid: android,
+        isLocalhost: localhost
+      });
+      
       e.preventDefault();
       setDeferredPrompt(e as BeforeInstallPromptEvent);
       setIsInstallable(true);
       
+      console.log('✅ ANDROID: Install prompt deferred and ready!', {
+        deferredPrompt: !!e,
+        isInstallable: true
+      });
+      
       // Show banner after a delay if not dismissed
       if (!dismissed) {
+        console.log('📱 ANDROID: Showing install banner in 3 seconds...');
         setTimeout(() => {
           setShowBanner(true);
+          console.log('📱 ANDROID: Install banner now visible!');
         }, 3000); // Show after 3 seconds
+      } else {
+        console.log('❌ ANDROID: Install banner dismissed by user previously');
       }
     };
 
     // Listen for app installed event
     const handleAppInstalled = () => {
+      console.log('App installed successfully!');
       setIsInstalled(true);
       setIsInstallable(false);
       setShowBanner(false);
@@ -79,6 +138,38 @@ export const PWAInstaller: React.FC = () => {
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
     window.addEventListener('appinstalled', handleAppInstalled);
 
+    // Android debug: Check if beforeinstallprompt event fires within 10 seconds
+    if (android && !localhost) {
+      setTimeout(() => {
+        if (!deferredPrompt) {
+          console.log('⚠️ ANDROID: beforeinstallprompt event did NOT fire after 10 seconds!');
+          console.log('🔍 ANDROID: Possible reasons:', {
+            'Not HTTPS': location.protocol !== 'https:',
+            'No Service Worker': !('serviceWorker' in navigator),
+            'No Manifest': !document.querySelector('link[rel="manifest"]'),
+            'Already Installed': isStandalone || isIOSStandalone,
+            'User Dismissed Before': dismissed === 'true',
+            'Not Chrome/Edge': !/Chrome|Edg/.test(navigator.userAgent),
+            'Engagement Requirements': 'User may need to interact with site more'
+          });
+        } else {
+          console.log('✅ ANDROID: beforeinstallprompt event fired successfully!');
+        }
+      }, 10000);
+    }
+
+    // Force show install button for testing (remove this in final version)
+    if (!localhost && android && !isStandalone && !dismissed) {
+      setTimeout(() => {
+        if (!deferredPrompt) {
+          console.warn('No beforeinstallprompt event received on Android. Check PWA criteria.');
+          // Still show the install button for manual testing
+          setIsInstallable(true);
+          setShowBanner(true);
+        }
+      }, 5000);
+    }
+
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
       window.removeEventListener('appinstalled', handleAppInstalled);
@@ -86,29 +177,27 @@ export const PWAInstaller: React.FC = () => {
   }, []);
 
   const handleInstallClick = async () => {
-    // Handle localhost development - show instructions
-    if (isLocalhost && !deferredPrompt) {
-      alert(`🔧 Development Mode - PWA Install Guide:
-
-📱 To test PWA installation:
-
-1. Deploy to HTTPS (required for real install prompt)
-2. Or use ngrok: npx ngrok http 3000
-3. Open the ngrok HTTPS URL in Chrome/Edge
-
-📋 PWA Install Requirements:
-✅ HTTPS (localhost doesn't trigger real install)
-✅ Valid manifest.json
-✅ Service worker registered
-✅ Icons (192x192 & 512x512)
-
-🚀 Your app meets all requirements except HTTPS!`);
-      return;
-    }
-
     // Handle iOS Safari install instructions
     if (isIOS && !deferredPrompt) {
       setShowIOSInstructions(true);
+      return;
+    }
+
+    // For Android without beforeinstallprompt, show manual instructions
+    if (isAndroid && !deferredPrompt) {
+      alert(`📱 Manual Install Instructions for Android:
+
+1. Open Chrome menu (3 dots) ⋮
+2. Tap "Add to Home screen" or "Install app"
+3. Confirm installation
+
+If you don't see the option:
+• Make sure you're using Chrome/Edge
+• Check that the URL is HTTPS
+• Try refreshing the page
+
+Debug Info:
+${debugInfo}`);
       return;
     }
 
@@ -186,6 +275,37 @@ export const PWAInstaller: React.FC = () => {
       <div style={styles.installedContainer}>
         <CheckIcon />
         <span style={styles.installedText}>App Installed</span>
+      </div>
+    );
+  }
+
+  // Debug mode for Android - show debug info even if not installable
+  if (isAndroid && !isLocalhost && !isInstalled && (!isInstallable || !showBanner)) {
+    return (
+      <div style={styles.debugContainer}>
+        <div style={styles.debugHeader}>🤖 Android PWA Debug</div>
+        <div style={styles.debugText}>
+          <div>Event Fired: {deferredPrompt ? '✅ Yes' : '❌ No'}</div>
+          <div>HTTPS: {window.location.protocol === 'https:' ? '✅' : '❌'}</div>
+          <div>Dismissed: {isDismissed ? '✅' : '❌'}</div>
+        </div>
+        <button 
+          onClick={() => {
+            console.log('🔍 Manual Debug Trigger - Current State:', {
+              deferredPrompt: !!deferredPrompt,
+              isInstallable,
+              showBanner,
+              isDismissed,
+              debugInfo
+            });
+            // Force show banner for testing
+            setShowBanner(true);
+            setIsInstallable(true);
+          }}
+          style={styles.debugButton}
+        >
+          Force Test
+        </button>
       </div>
     );
   }
@@ -402,6 +522,43 @@ const styles = {
     alignItems: 'center',
     justifyContent: 'center',
     flexShrink: 0,
+  } as React.CSSProperties,
+
+  debugContainer: {
+    position: 'fixed',
+    bottom: '16px',
+    right: '16px',
+    backgroundColor: '#fff3cd',
+    border: '1px solid #ffeaa7',
+    borderRadius: '8px',
+    padding: '12px',
+    maxWidth: '250px',
+    boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+  } as React.CSSProperties,
+
+  debugHeader: {
+    fontSize: '14px',
+    fontWeight: '600',
+    marginBottom: '8px',
+    color: '#856404',
+  } as React.CSSProperties,
+
+  debugText: {
+    fontSize: '12px',
+    color: '#856404',
+    marginBottom: '8px',
+    lineHeight: '1.4',
+  } as React.CSSProperties,
+
+  debugButton: {
+    padding: '6px 12px',
+    backgroundColor: '#ffc107',
+    color: '#856404',
+    border: 'none',
+    borderRadius: '4px',
+    fontSize: '12px',
+    fontWeight: '500',
+    cursor: 'pointer',
   } as React.CSSProperties,
 };
 
