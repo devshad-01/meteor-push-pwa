@@ -60,6 +60,13 @@ Meteor.startup(() => {
     const user = Meteor.user() as User | null;
     const isLoggingIn = Meteor.loggingIn();
     
+    // Debug logging for iOS issues
+    console.log('AuthStore - Meteor state change:', {
+      hasUser: !!user,
+      isLoggingIn,
+      userAgent: navigator.userAgent.includes('iPhone') ? 'iOS' : 'Other'
+    });
+    
     useAuthStore.getState().setUser(user);
     useAuthStore.getState().setLoggingIn(isLoggingIn);
   });

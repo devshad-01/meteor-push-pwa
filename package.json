@@ -2,7 +2,7 @@
   "name": "meteor-app",
   "private": true,
   "scripts": {
-    "start": "meteor run",
+    "start": "meteor run --settings settings.json",
     "start:https": "meteor run --settings settings.json",
     "ngrok": "echo 'Run this in another terminal: npx ngrok http 3000' && meteor run",
     "test": "meteor test --once --driver-package meteortesting:mocha",

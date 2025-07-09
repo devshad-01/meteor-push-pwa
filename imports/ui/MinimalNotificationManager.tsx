@@ -42,6 +42,13 @@ export const MinimalNotificationManager: React.FC = () => {
   };
 
   const checkPermissionStatus = () => {
+    // Check if Notification API is available (not available in iOS Safari)
+    if (typeof Notification === 'undefined') {
+      console.log('Notification API not available on this device');
+      setPermission(prev => ({ ...prev, granted: false }));
+      return;
+    }
+    
     const granted = Notification.permission === 'granted';
     setPermission(prev => ({ ...prev, granted }));
   };
@@ -65,6 +72,12 @@ export const MinimalNotificationManager: React.FC = () => {
   };
 
   const requestPermissionAndSubscribe = async () => {
+    // Check if Notification API is available (not available in iOS Safari)
+    if (typeof Notification === 'undefined') {
+      showErrorToast('Push notifications are not supported on this device');
+      return;
+    }
+
     setPermission(prev => ({ ...prev, loading: true }));
 
     try {
