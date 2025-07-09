@@ -1,12 +1,12 @@
-# <p align="center"><img src="https://raw.githubusercontent.com/devshad-01/meteorjs-pwa-template/main/public/icons/icon-192x192.svg" width="64" alt="PWA Logo"/></p>
+# <p align="center"><img src="https://raw.githubusercontent.com/devshad-01/meteor-push-pwa/main/public/icons/icon-192x192.svg" width="64" alt="PWA Logo"/></p>
 
-<h1 align="center">Meteor PWA Template 🚀</h1>
+<h1 align="center">Meteor Push PWA 🚀</h1>
 
 <p align="center">
-  <a href="https://github.com/devshad-01/meteorjs-pwa-template/stargazers"><img src="https://img.shields.io/github/stars/devshad-01/meteorjs-pwa-template?style=flat-square" alt="Stars"/></a>
-  <a href="https://github.com/devshad-01/meteorjs-pwa-template/network/members"><img src="https://img.shields.io/github/forks/devshad-01/meteorjs-pwa-template?style=flat-square" alt="Forks"/></a>
-  <a href="https://github.com/devshad-01/meteorjs-pwa-template/issues"><img src="https://img.shields.io/github/issues/devshad-01/meteorjs-pwa-template?style=flat-square" alt="Issues"/></a>
-  <a href="https://github.com/devshad-01/meteorjs-pwa-template/blob/main/LICENSE"><img src="https://img.shields.io/github/license/devshad-01/meteorjs-pwa-template?style=flat-square" alt="License"/></a>
+  <a href="https://github.com/devshad-01/meteor-push-pwa/stargazers"><img src="https://img.shields.io/github/stars/devshad-01/meteor-push-pwa?style=flat-square" alt="Stars"/></a>
+  <a href="https://github.com/devshad-01/meteor-push-pwa/network/members"><img src="https://img.shields.io/github/forks/devshad-01/meteor-push-pwa?style=flat-square" alt="Forks"/></a>
+  <a href="https://github.com/devshad-01/meteor-push-pwa/issues"><img src="https://img.shields.io/github/issues/devshad-01/meteor-push-pwa?style=flat-square" alt="Issues"/></a>
+  <a href="https://github.com/devshad-01/meteor-push-pwa/blob/main/LICENSE"><img src="https://img.shields.io/github/license/devshad-01/meteor-push-pwa?style=flat-square" alt="License"/></a>
 </p>
 
 <p align="center">
@@ -21,13 +21,13 @@
 
 ## ⭐ Star this repo!
 
-If you like this project, please [star it on GitHub](https://github.com/devshad-01/meteorjs-pwa-template) — it helps others discover it and motivates further development!
+If you like this project, please [star it on GitHub](https://github.com/devshad-01/meteor-push-pwa) — it helps others discover it and motivates further development!
 
 ---
 
 ## 📸 Demo
 
-> **Live Demo:** [https://fierce-garden-82374-10.meteorapp.com](https://fierce-garden-82374-10.meteorapp.com)
+> **Live Demo:** [https://pwameteor.meteorapp.com/dashboard](https://pwameteor.meteorapp.com/dashboard)
 
 ![PWA Demo Screenshot](public/icons/demo-screenshot.png)
 
@@ -444,3 +444,19 @@ For PWA installation issues:
 - **Submit issues** and feature requests — your feedback is welcome
 - **Open a PR** for bug fixes, docs, or new features
 - **Add a badge to your own project** if you use this template!
+
+---
+
+## ⚠️ iOS Web Push Support
+
+> **Heads up!**
+>
+> Web Push on iOS (Safari, iPhone/iPad) is supported only on iOS 16.4+ and has unique limitations:
+> - Notification permissions and prompts behave differently than Android/desktop.
+> - Some notification features (actions, badges, vibration) may not work as expected.
+> - Always check for `Notification` and `serviceWorker` support in your code.
+>
+> **Troubleshooting:**
+> - Make sure you’re testing on iOS 16.4+.
+> - Use HTTPS and a valid manifest.
+> - See the [iOS Web Push FAQ](#ios-web-push-faq) below for more tips.
